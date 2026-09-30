@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PendingLink } from "@/components/pending-link";
 import { Alerts, ExerciceChips, Kpi, Meter, NoData } from "@/components/ui";
 import { buildDataset, dormantsAt, monthAlerts, newClients, pickExercice } from "@/lib/analytics";
 import { REGLES } from "@/lib/config";
@@ -38,7 +38,7 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
 
       <div className="chips">
         {e.months.map((x) => (
-          <Link
+          <PendingLink
             key={x.mk}
             href={`/mensuel?m=${x.mk}`}
             className={`chip${x.mk === m.mk ? " active" : ""}${x.hasData ? "" : " disabled"}`}
@@ -46,7 +46,7 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
             scroll={false}
           >
             {x.lab}
-          </Link>
+          </PendingLink>
         ))}
       </div>
 

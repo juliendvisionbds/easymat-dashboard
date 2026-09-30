@@ -4,7 +4,22 @@
     {
       "name": "easymat-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3210"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "3210"
+      ],
+      "port": 3210
+    },
+    {
+      "name": "easymat-prod",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "npm run build && npx next start --port 3210"
+      ],
       "port": 3210
     }
   ]

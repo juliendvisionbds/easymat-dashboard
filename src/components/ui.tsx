@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Alert } from "@/lib/analytics";
+import { PendingLink } from "./pending-link";
 
 const TONE_LABEL = { pos: "Bonne nouvelle", neg: "À surveiller", warn: "Vigilance" };
 
@@ -50,9 +51,9 @@ export function ExerciceChips({ exercices, current, base }: { exercices: number[
   return (
     <div className="chips">
       {exercices.map((ex) => (
-        <Link key={ex} href={`${base}?ex=${ex}`} className={`chip${ex === current ? " active" : ""}`}>
+        <PendingLink key={ex} href={`${base}?ex=${ex}`} className={`chip${ex === current ? " active" : ""}`}>
           Exercice {ex}-{String(ex + 1).slice(2)}
-        </Link>
+        </PendingLink>
       ))}
     </div>
   );

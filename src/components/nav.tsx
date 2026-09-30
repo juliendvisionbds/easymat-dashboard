@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PendingLink } from "./pending-link";
 
 const TABS = [
   { href: "/", label: "Vue globale" },
@@ -15,9 +15,9 @@ export function Nav() {
   return (
     <nav className="nav">
       {TABS.map((t) => (
-        <Link key={t.href} href={t.href} className={`tab${path === t.href ? " active" : ""}`}>
+        <PendingLink key={t.href} href={t.href} className={`tab${path === t.href ? " active" : ""}`}>
           {t.label}
-        </Link>
+        </PendingLink>
       ))}
     </nav>
   );
