@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { buildChatContext, systemPrompt } from "@/lib/chat-context";
-import { loadFactures } from "@/lib/store";
+import { getData } from "@/lib/store";
 
 // Les appels OpenAI passent par le proxy key.one : une clé de projet, budget contrôlé avant chaque appel.
 const BASE_URL = (process.env.KEYONE_OPENAI_BASE_URL || "https://getkeyone.com/api/proxy/openai/v1").replace(/\/+$/, "");
@@ -32,7 +32,8 @@ export async function POST(request: Request) {
   const messages = readMessages(await request.json().catch(() => null));
   if (!messages) return fail("Message invalide.");
 
-  const context = buildChatContext(await loadFactures());
+  const { dataset, factures } = await getData();
+  const context = buildChatContext(dataset, factures);
   if (!context) return fail("Importez d’abord un journal des ventes : l’assistant n’a aucune donnée à lire.");
 
   const upstream = await fetch(`${BASE_URL}/chat/completions`, {

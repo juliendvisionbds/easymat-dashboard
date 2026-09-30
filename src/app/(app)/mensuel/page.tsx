@@ -1,16 +1,16 @@
 import { PendingLink } from "@/components/pending-link";
 import { Alerts, ExerciceChips, Kpi, Meter, NoData } from "@/components/ui";
-import { buildDataset, dormantsAt, monthAlerts, newClients, pickExercice } from "@/lib/analytics";
+import { dormantsAt, monthAlerts, newClients, pickExercice } from "@/lib/analytics";
 import { REGLES } from "@/lib/config";
 import { eur, k, pct, plural } from "@/lib/format";
 import { exerciceOf, monthLabel, monthLongLabel } from "@/lib/period";
-import { loadFactures } from "@/lib/store";
+import { getDataset } from "@/lib/store";
 
 export const metadata = { title: "Vue mensuelle" };
 
 export default async function MensuelPage({ searchParams }: PageProps<"/mensuel">) {
   const params = await searchParams;
-  const ds = buildDataset(await loadFactures());
+  const ds = await getDataset();
   const wanted = typeof params.m === "string" && /^\d{4}-\d{2}$/.test(params.m) ? params.m : null;
   const e = pickExercice(ds, wanted ? String(exerciceOf(`${wanted}-01`)) : typeof params.ex === "string" ? params.ex : undefined);
   if (!e) return <NoData />;

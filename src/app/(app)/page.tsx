@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { Alerts, ExerciceChips, Kpi, Meter, NoData } from "@/components/ui";
-import { buildDataset, exerciceAlerts, pickExercice } from "@/lib/analytics";
+import { exerciceAlerts, pickExercice } from "@/lib/analytics";
 import { REGLES } from "@/lib/config";
 import { eur, k, part, plural } from "@/lib/format";
 import { monthLongLabel } from "@/lib/period";
-import { loadFactures } from "@/lib/store";
+import { getDataset } from "@/lib/store";
 
 const TABLE_DEFAULT = 15;
 
 export default async function GlobalPage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
-  const ds = buildDataset(await loadFactures());
+  const ds = await getDataset();
   const e = pickExercice(ds, typeof params.ex === "string" ? params.ex : undefined);
   if (!e) return <NoData />;
 

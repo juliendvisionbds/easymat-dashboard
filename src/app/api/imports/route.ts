@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { ParseError, parseFile } from "@/lib/parse";
 import { monthKey } from "@/lib/period";
-import { getStore } from "@/lib/store";
+import { getData, getStore, invalidateData } from "@/lib/store";
 
 const MAX_SIZE = 4 * 1024 * 1024;
 
@@ -44,19 +44,19 @@ export async function POST(request: Request) {
     throw e;
   }
 
-  const store = getStore();
   const existing = new Map<string, number>();
-  for (const f of await store.loadFactures()) {
+  for (const f of (await getData()).factures) {
     existing.set(monthKey(f.date), (existing.get(monthKey(f.date)) ?? 0) + 1);
   }
 
   const confirm = form.get("confirm") === "1";
   if (confirm) {
-    await store.applyImport({
+    await getStore().applyImport({
       filename: file.name,
       factures: parsed.factures,
       replacedMonths: parsed.months.filter((m) => m.replaced).map((m) => m.mk),
     });
+    invalidateData();
     revalidatePath("/", "layout");
   }
 

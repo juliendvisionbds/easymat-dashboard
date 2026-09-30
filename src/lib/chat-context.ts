@@ -1,4 +1,4 @@
-import { buildDataset, dormantsAt, exerciceAlerts, newClients, type Exercice } from "./analytics";
+import { dormantsAt, exerciceAlerts, newClients, type Dataset, type Exercice } from "./analytics";
 import { REGLES } from "./config";
 import { dateFr, exerciceOf, monthLongLabel } from "./period";
 import type { Facture } from "./types";
@@ -49,8 +49,7 @@ function exerciceBlock(e: Exercice, factures: Facture[], detail: boolean): strin
 }
 
 // Données chiffrées fournies au modèle : l'exercice demandé en détail, le précédent en résumé.
-export function buildChatContext(factures: Facture[]): string | null {
-  const ds = buildDataset(factures);
+export function buildChatContext(ds: Dataset, factures: Facture[]): string | null {
   const ex = ds.exercices.at(-1);
   if (ex == null) return null;
   const e = ds.byExercice.get(ex)!;

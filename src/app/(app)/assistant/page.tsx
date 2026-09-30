@@ -1,13 +1,13 @@
 import { NoData } from "@/components/ui";
-import { buildDataset, pickExercice } from "@/lib/analytics";
+import { pickExercice } from "@/lib/analytics";
 import { eur, plural } from "@/lib/format";
-import { loadFactures } from "@/lib/store";
+import { getDataset } from "@/lib/store";
 import { Chat } from "./chat";
 
 export const metadata = { title: "Assistant IA" };
 
 export default async function AssistantPage() {
-  const e = pickExercice(buildDataset(await loadFactures()));
+  const e = pickExercice(await getDataset());
   if (!e) return <NoData />;
 
   return (

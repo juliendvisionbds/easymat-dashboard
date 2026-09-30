@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { cache } from "react";
+import { buildDataset, type Dataset } from "./analytics";
 import { monthKey } from "./period";
 import { createClient, supabaseConfigured } from "./supabase";
 import type { Facture, ImportMeta, NewImport } from "./types";
@@ -106,5 +107,34 @@ export function getStore(): Store {
 }
 
 // Une seule lecture par requête, partagée entre le layout et la page.
-export const loadFactures = cache(() => getStore().loadFactures());
 export const listImports = cache(() => getStore().listImports());
+
+export type Data = { version: string; factures: Facture[]; dataset: Dataset };
+
+// Les factures ne changent qu'à l'import. Elles restent en mémoire du serveur,
+// avec la date du dernier import comme version : chaque page ne coûte plus qu'une
+// petite requête de contrôle au lieu de relire tout le journal. Sur plusieurs
+// instances (Vercel), une instance qui n'a pas vu l'import recharge au premier écart.
+let memo: Data | null = null;
+let loading: Promise<Data> | null = null;
+
+export const getData = cache(async (): Promise<Data> => {
+  const version = (await listImports())[0]?.createdAt ?? "vide";
+  if (memo?.version === version) return memo;
+  loading ??= (async () => {
+    try {
+      const factures = await getStore().loadFactures();
+      memo = { version, factures, dataset: buildDataset(factures) };
+      return memo;
+    } finally {
+      loading = null;
+    }
+  })();
+  return loading;
+});
+
+export const getDataset = async () => (await getData()).dataset;
+
+export function invalidateData() {
+  memo = null;
+}
