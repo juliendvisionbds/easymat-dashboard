@@ -7,7 +7,7 @@ const mono = IBM_Plex_Mono({ variable: "--font-mono", subsets: ["latin"], weight
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
 
 export const metadata: Metadata = {
-  title: { default: "Analyse financière · Easymat Services", template: "%s · Easymat Services" },
+  title: { default: "Analyse financière · Easymat", template: "%s · Easymat" },
   description: "Suivi du chiffre d'affaires Easymat Services à partir du journal des ventes.",
   robots: { index: false, follow: false },
 };
