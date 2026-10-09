@@ -14,6 +14,15 @@
       "port": 3210
     },
     {
+      "name": "easymat-local",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_ANON_KEY= npm run dev -- --port 3210"
+      ],
+      "port": 3210
+    },
+    {
       "name": "easymat-prod",
       "runtimeExecutable": "sh",
       "runtimeArgs": [
