@@ -88,14 +88,16 @@ export function Chat({ welcome }: { welcome: string }) {
         </form>
       </div>
 
-      <div className="card" style={{ padding: 22 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Questions fréquentes</div>
-        <div className="card-sub" style={{ marginBottom: 12 }}>Cliquez pour poser la question.</div>
-        {SUGGESTIONS.map((q) => (
-          <button key={q} type="button" className="suggestion" disabled={busy} onClick={() => ask(q)}>
-            {q}
-          </button>
-        ))}
+      <div className="card">
+        <div className="card-title">Questions fréquentes</div>
+        <div className="card-sub card-intro">Cliquez pour poser la question.</div>
+        <div className="suggestions">
+          {SUGGESTIONS.map((q) => (
+            <button key={q} type="button" className="suggestion" disabled={busy} onClick={() => ask(q)}>
+              {q}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

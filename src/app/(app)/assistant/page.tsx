@@ -1,4 +1,4 @@
-import { NoData } from "@/components/ui";
+import { Hero, NoData } from "@/components/ui";
 import { pickExercice } from "@/lib/analytics";
 import { eur, plural } from "@/lib/format";
 import { getDataset } from "@/lib/store";
@@ -12,13 +12,10 @@ export default async function AssistantPage() {
 
   return (
     <>
-      <div className="hero" style={{ marginBottom: 22 }}>
-        <h1>Posez la question.</h1>
-        <p>
-          L’assistant lit les mêmes données que les deux onglets précédents. Il répond avec des chiffres, jamais avec
-          une impression.
-        </p>
-      </div>
+      <Hero
+        title="Assistant IA"
+        sub="Il lit les mêmes données que les deux onglets précédents et répond avec des chiffres, jamais avec une impression."
+      />
       <Chat
         welcome={`Bonjour. J’ai repris le journal des ventes de l’exercice ${e.label} : ${eur(e.total)} facturés, ${plural(e.clients.length, "client")}. Que voulez-vous savoir ?`}
       />

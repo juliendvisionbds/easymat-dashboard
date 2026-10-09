@@ -53,7 +53,7 @@ export function Upload() {
   const erased = replaced.reduce((a, m) => a + m.existing, 0);
 
   return (
-    <div className="card section">
+    <div className="card">
       <div className="card-title">Importer le journal des ventes</div>
       <div className="card-sub">
         L’export Edilogic du mois, en .xlsx ou .csv. Rien n’est enregistré avant votre confirmation.
@@ -75,7 +75,7 @@ export function Upload() {
       {error && <div className="error" style={{ marginTop: 16 }}>{error}</div>}
 
       {preview && (
-        <div style={{ marginTop: 18 }}>
+        <div className="preview">
           {preview.applied ? (
             <div className="success">
               Import terminé : {plural(preview.nbFactures, "facture enregistrée", "factures enregistrées")}, {eur(preview.totalHt)} HT. Le tableau de bord est à jour.
@@ -89,17 +89,17 @@ export function Upload() {
             </div>
           )}
 
-          <div className="line" style={{ borderTop: 0, marginTop: 8 }}>
+          <div className="line first">
             <span className="ellipsis"><strong>{preview.filename}</strong></span>
             <span className="muted small">{dateFr(preview.periodStart)} → {dateFr(preview.periodEnd)}</span>
           </div>
           <div className="line">
             <span>Factures et avoirs</span>
-            <span className="mono">{preview.nbFactures.toLocaleString("fr-FR")} · {plural(preview.nbClients, "client")}</span>
+            <span className="num strong">{preview.nbFactures.toLocaleString("fr-FR")} · {plural(preview.nbClients, "client")}</span>
           </div>
           <div className="line">
             <span>Total HT</span>
-            <span className="mono">
+            <span className="num strong">
               {eur(preview.totalHt)}
               {preview.declaredTotal != null && Math.abs(preview.declaredTotal - preview.totalHt) <= 0.05 && (
                 <span className="pos"> · conforme au total du journal</span>
@@ -107,7 +107,7 @@ export function Upload() {
             </span>
           </div>
 
-          <div className="table-wrap">
+          <div className="table-wrap table-box">
             <div className="table">
               <div className="tr head cols-preview">
                 <div>Mois</div>
@@ -117,9 +117,9 @@ export function Upload() {
               </div>
               {preview.months.map((m) => (
                 <div key={m.mk} className="tr cols-preview">
-                  <div style={{ fontWeight: 600 }}>{monthLongLabel(m.mk)}</div>
+                  <div className="cell-name">{monthLongLabel(m.mk)}</div>
                   <div className="right cell-soft">{m.n}</div>
-                  <div className="right mono">{eur(m.ht)}</div>
+                  <div className="right strong">{eur(m.ht)}</div>
                   <div className="cell-soft">
                     {!m.replaced
                       ? "Factures isolées : ajoutées sans écraser le mois"

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Alerts, ExerciceChips, Kpi, Meter, NoData } from "@/components/ui";
+import type { CSSProperties } from "react";
+import { AlertsCard, ExerciceChips, Hero, Kpi, Meter, NoData } from "@/components/ui";
 import { exerciceAlerts, pickExercice } from "@/lib/analytics";
 import { REGLES } from "@/lib/config";
 import { eur, k, part, plural } from "@/lib/format";
-import { monthLongLabel } from "@/lib/period";
-import { getDataset } from "@/lib/store";
+import { dateFr, monthLongLabel } from "@/lib/period";
+import { getDataset, listImports } from "@/lib/store";
 
 const TABLE_DEFAULT = 15;
 
@@ -24,21 +25,22 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
   const alerts = exerciceAlerts(ds, e);
   const rows = showAll ? e.clients : e.clients.slice(0, TABLE_DEFAULT);
   const query = (all: boolean) => `/?ex=${e.ex}${all ? "&all=1" : ""}#clients`;
+  const lastImport = (await listImports())[0];
 
   return (
     <>
-      <div className="hero">
-        <h1>L’exercice en un écran.</h1>
-        <p>
-          Exercice {e.label}. Tout ce qui suit est calculé depuis le journal des ventes Edilogic, sans retouche manuelle.
-        </p>
-      </div>
+      <Hero
+        title="Ventes cumulées"
+        sub={`${n} mois · ${monthLongLabel(first.mk)} → ${monthLongLabel(last.mk)} · source : journal des ventes Edilogic`}
+      >
+        <ExerciceChips exercices={ds.exercices} current={e.ex} base="/" />
+        {lastImport && <div className="chip-static">Dernier import le {dateFr(lastImport.createdAt.slice(0, 10))}</div>}
+        <Link href="/imports" className="btn-primary">Importer un export</Link>
+      </Hero>
 
-      <ExerciceChips exercices={ds.exercices} current={e.ex} base="/" />
-
-      <div className="grid-kpi section">
+      <div className="card kpis">
         <Kpi
-          label="CA facturé — exercice"
+          label="CA facturé · exercice"
           value={k(e.total)}
           sub={`${plural(e.nFactures, "facture")} · ${plural(e.clients.length, "client")}`}
         />
@@ -59,46 +61,57 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
         />
       </div>
 
-      <div className="card section">
-        <div className="card-head">
-          <div className="card-title">Ce qu’il faut regarder ce mois-ci</div>
-          <div className="muted small">{monthLongLabel(last.mk)} · généré automatiquement</div>
-        </div>
-        <Alerts alerts={alerts} />
-      </div>
-
-      <div className="card section">
+      <div className="card">
         <div className="card-head">
           <div className="card-title">CA facturé par mois</div>
-          <div className="muted small">Moyenne {k(moy)} · barre foncée = au-dessus de la moyenne</div>
+          <div className="legend">
+            <span><i />Au-dessus de la moyenne</span>
+            <span><i className="light" />En dessous</span>
+            <span><i className="dash" />Moyenne <strong>{k(moy)}</strong> / mois</span>
+          </div>
         </div>
-        <div className="bars">
+        <div className="bars" style={{ "--avg": Math.min(1, Math.max(0, moy / maxCa)) } as CSSProperties}>
+          <div className="bars-avg" />
           {e.months.map((m) => (
-            <Link key={m.mk} href={`/mensuel?m=${m.mk}`} className="bar-col" title={m.hasData ? eur(m.ca) : "Pas encore importé"}>
-              <div className="bar-val">{m.hasData ? k(m.ca) : "—"}</div>
-              <div
-                className={`bar${!m.hasData ? " empty" : m.ca >= moy ? " high" : ""}`}
-                style={{ height: `${m.hasData ? Math.max(0, Math.round((m.ca / maxCa) * 100)) : 0}%` }}
-              />
+            <Link
+              key={m.mk}
+              href={`/mensuel?m=${m.mk}`}
+              className={`bar-col${!m.hasData ? " empty" : m.ca >= moy ? " high" : ""}`}
+              title={m.hasData ? eur(m.ca) : "Pas encore importé"}
+            >
+              <div className="bar-val">{m.hasData ? k(m.ca) : "–"}</div>
+              <div className="bar-track">
+                <div className="bar" style={{ height: `${m.hasData ? Math.max(0, Math.round((m.ca / maxCa) * 100)) : 0}%` }} />
+              </div>
             </Link>
           ))}
         </div>
         <div className="bar-labels">
-          {e.months.map((m) => <div key={m.mk}>{m.lab}</div>)}
+          {e.months.map((m) => {
+            const [mois, annee] = m.lab.split(" ");
+            return <div key={m.mk}>{mois}<span className="bar-year"> {annee}</span></div>;
+          })}
         </div>
       </div>
 
-      <div className="grid-2 section">
+      <AlertsCard
+        title="Ce qu’il faut regarder ce mois-ci"
+        meta={`${monthLongLabel(last.mk)} · généré automatiquement`}
+        alerts={alerts}
+      />
+
+      <div className="grid-2">
         <div className="card">
           <div className="card-title">Poids des clients</div>
-          <div className="card-sub" style={{ marginBottom: 14 }}>
+          <div className="card-sub card-intro">
             Le top 10 pèse {part(e.top10part)} du CA. Seuil d’alerte fixé à {REGLES.seuilDependance} % par client.
           </div>
           {e.clients.slice(0, 10).map((c) => (
             <Meter
               key={c.code}
               name={c.name}
-              value={`${part(c.part)}  ·  ${k(c.tot)}`}
+              value={k(c.tot)}
+              share={part(c.part)}
               width={(c.part / e.clients[0].part) * 100}
               risk={c.part >= REGLES.seuilDependance}
             />
@@ -108,7 +121,7 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
         <div className="stack">
           <div className="card">
             <div className="card-title">Récurrent ou ponctuel</div>
-            <div className="card-sub" style={{ marginBottom: 12 }}>
+            <div className="card-sub card-intro">
               Un client facturé dix mois sur douze ne se pilote pas comme un client d’un seul chantier.
             </div>
             {e.recurrence ? (
@@ -137,11 +150,11 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
 
           <div className="card">
             <div className="card-title">Avoirs par mois</div>
-            <div className="card-sub" style={{ marginBottom: 6 }}>Un pic signale un litige ou une erreur de facturation.</div>
+            <div className="card-sub card-intro">Un pic signale un litige ou une erreur de facturation.</div>
             {e.months.filter((m) => m.navoirs > 0).map((m) => (
               <div key={m.mk} className="line">
                 <span>{m.lab} <span className="muted small">· {plural(m.navoirs, "avoir")}</span></span>
-                <span className={`mono${m.avoirs < REGLES.seuilAvoirs ? " neg" : ""}`}>{eur(m.avoirs)}</span>
+                <span className={`num strong${m.avoirs < REGLES.seuilAvoirs ? " neg" : ""}`}>{eur(m.avoirs)}</span>
               </div>
             ))}
             {!e.avoirsN && <div className="empty">Aucun avoir sur l’exercice.</div>}
@@ -149,14 +162,14 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
         </div>
       </div>
 
-      <div className="card" id="clients">
-        <div className="card-head">
+      <div className="card flush" id="clients">
+        <div className="card-bar">
           <div>
             <div className="card-title">Tous les clients de l’exercice</div>
-            <div className="card-sub">{plural(e.clients.length, "client facturé", "clients facturés")} sur l’exercice {e.label}</div>
+            <div className="muted small">{plural(e.clients.length, "client facturé", "clients facturés")} · exercice {e.label}</div>
           </div>
           {e.clients.length > TABLE_DEFAULT && (
-            <Link href={query(!showAll)} className="btn-secondary" scroll={false}>
+            <Link href={query(!showAll)} className="btn-small" scroll={false}>
               {showAll ? `Réduire à ${TABLE_DEFAULT}` : `Afficher les ${e.clients.length}`}
             </Link>
           )}
@@ -173,11 +186,11 @@ export default async function GlobalPage({ searchParams }: PageProps<"/">) {
             </div>
             {rows.map((c) => (
               <div key={c.code} className="tr cols-clients">
-                <div className="ellipsis" style={{ fontWeight: 600 }} title={`${c.name} (${c.code})`}>{c.name}</div>
-                <div className={`right mono${c.tot < 0 ? " neg" : ""}`}>{eur(c.tot)}</div>
+                <div className="cell-name ellipsis" title={`${c.name} (${c.code})`}>{c.name}</div>
+                <div className={`right strong${c.tot < 0 ? " neg" : ""}`}>{eur(c.tot)}</div>
                 <div className="right cell-soft">{part(c.part)}</div>
                 <div className="right cell-soft">{c.nf.reduce((a, b) => a + b, 0)}</div>
-                <div className="right cell-soft">{c.avn ? eur(c.av) : "—"}</div>
+                <div className={`right cell-soft${c.avn ? "" : " void"}`}>{c.avn ? eur(c.av) : "–"}</div>
                 <div className="right cell-soft">{c.mois}/{n}</div>
               </div>
             ))}

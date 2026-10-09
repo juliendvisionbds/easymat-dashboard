@@ -8,10 +8,10 @@ export default function LoginPage() {
     <main className="login">
       <div className="card login-card">
         <div className="brand">
-          <Image src="/logo.png" alt="Easymat Services" width={46} height={46} className="brand-logo" />
-          <div>
+          <Image src="/logo.png" alt="Easymat Services" width={36} height={36} className="brand-logo" />
+          <div className="brand-text">
             <div className="brand-title">Analyse financière</div>
-            <div className="muted small">Easymat Services</div>
+            <div className="brand-sub">Easymat Services</div>
           </div>
         </div>
         <LoginForm />

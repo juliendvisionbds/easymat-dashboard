@@ -1,5 +1,5 @@
 import { PendingLink } from "@/components/pending-link";
-import { Alerts, ExerciceChips, Kpi, Meter, NoData } from "@/components/ui";
+import { AlertsCard, ExerciceChips, Hero, Kpi, Meter, NoData } from "@/components/ui";
 import { dormantsAt, monthAlerts, newClients, pickExercice } from "@/lib/analytics";
 import { REGLES } from "@/lib/config";
 import { eur, k, pct, plural } from "@/lib/format";
@@ -29,32 +29,29 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
 
   return (
     <>
-      <div className="hero" style={{ marginBottom: 20 }}>
-        <h1>Le point du mois.</h1>
-        <p>Choisissez un mois : nouveaux clients, clients qui décrochent, avoirs, tout est recalculé.</p>
-      </div>
+      <Hero title="Le point du mois" sub="Choisissez un mois : nouveaux clients, clients qui décrochent, avoirs, tout est recalculé.">
+        <ExerciceChips exercices={ds.exercices} current={e.ex} base="/mensuel" />
+        <div className="seg">
+          {e.months.map((x) => (
+            <PendingLink
+              key={x.mk}
+              href={`/mensuel?m=${x.mk}`}
+              className={`seg-item${x.mk === m.mk ? " active" : ""}${x.hasData ? "" : " disabled"}`}
+              aria-disabled={!x.hasData}
+              scroll={false}
+            >
+              {x.lab}
+            </PendingLink>
+          ))}
+        </div>
+      </Hero>
 
-      <ExerciceChips exercices={ds.exercices} current={e.ex} base="/mensuel" />
-
-      <div className="chips">
-        {e.months.map((x) => (
-          <PendingLink
-            key={x.mk}
-            href={`/mensuel?m=${x.mk}`}
-            className={`chip${x.mk === m.mk ? " active" : ""}${x.hasData ? "" : " disabled"}`}
-            aria-disabled={!x.hasData}
-            scroll={false}
-          >
-            {x.lab}
-          </PendingLink>
-        ))}
-      </div>
-
-      <div className="grid-kpi section">
+      <div className="card kpis dense">
         <Kpi
           label="CA du mois"
           value={k(m.ca)}
-          sub={ev == null ? "Pas de mois précédent" : `${pct(ev)} vs ${prev!.lab}`}
+          delta={ev == null ? undefined : pct(ev)}
+          sub={ev == null ? "Pas de mois précédent" : `vs ${prev!.lab}`}
           tone={ev == null ? undefined : ev >= 0 ? "pos" : "neg"}
         />
         <Kpi label="Factures" value={String(m.nf)} sub={`panier moyen ${eur(m.ca / m.nf)}`} />
@@ -72,14 +69,11 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
         />
       </div>
 
-      <div className="card section">
-        <div className="card-title">Alertes de {monthLongLabel(m.mk)}</div>
-        <Alerts alerts={monthAlerts(ds, e, i)} />
-      </div>
+      <AlertsCard title={`Alertes ${/^[aeiouéè]/.test(monthLongLabel(m.mk)) ? "d’" : "de "}${monthLongLabel(m.mk)}`} alerts={monthAlerts(ds, e, i)} />
 
-      <div className="grid-2 section">
+      <div className="grid-2">
         <div className="card">
-          <div className="card-title" style={{ marginBottom: 12 }}>Top clients du mois</div>
+          <div className="card-title card-intro">Top clients du mois</div>
           {tops.map((c) => (
             <Meter key={c.code} name={c.name} value={eur(c.m[i])} width={(c.m[i] / tops[0].m[i]) * 100} />
           ))}
@@ -88,11 +82,11 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
         <div className="stack">
           <div className="card">
             <div className="card-title">Nouveaux clients</div>
-            <div className="card-sub" style={{ marginBottom: 6 }}>Première facture ce mois-ci.</div>
+            <div className="card-sub card-intro">Première facture ce mois-ci.</div>
             {news.map((c) => (
               <div key={c.code} className="line">
                 <span className="ellipsis">{c.name}</span>
-                <span className="mono">{eur(c.m[i])}</span>
+                <span className="num strong">{eur(c.m[i])}</span>
               </div>
             ))}
             {!news.length && <div className="empty">Aucun nouveau client ce mois-ci.</div>}
@@ -100,7 +94,7 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
 
           <div className="card">
             <div className="card-title">Clients dormants</div>
-            <div className="card-sub" style={{ marginBottom: 6 }}>
+            <div className="card-sub card-intro">
               {dorm.length
                 ? `Plus rien facturé depuis ${REGLES.moisDormance} mois, alors qu’ils achetaient avant.`
                 : "Aucun client dormant à cette date."}
@@ -108,10 +102,10 @@ export default async function MensuelPage({ searchParams }: PageProps<"/mensuel"
             {dorm.slice(0, 6).map((c) => (
               <div key={c.code} className="line">
                 <span className="ellipsis">{c.name}</span>
-                <span className="muted small">{k(c.tot)} · dern. {monthLabel(c.last)}</span>
+                <span className="muted small num">{k(c.tot)} · dern. {monthLabel(c.last)}</span>
               </div>
             ))}
-            {dorm.length > 6 && <div className="muted small" style={{ paddingTop: 10 }}>+ {dorm.length - 6} autres</div>}
+            {dorm.length > 6 && <div className="more">+ {dorm.length - 6} autres</div>}
           </div>
         </div>
       </div>
